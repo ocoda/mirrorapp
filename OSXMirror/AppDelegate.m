@@ -19,7 +19,7 @@
 {
     // Insert code here to initialize your application
     
-
+    
     [self.window setTitle:@" "];
     [self.window setBackgroundColor: NSColor.whiteColor];
     
@@ -44,10 +44,10 @@
     [chooseCampusButton setHidden:NO];
     [loginURL setHidden:YES];
     [settingsButton setHidden:YES];
-        
+    
     [self loadInitialSettings];
- 
-
+    
+    
 }
 
 -(IBAction)login:(id)sender {
@@ -100,6 +100,12 @@
 }
 
 - (void)receivingDataError {
+    if ([deviceView isHidden] == NO) {
+        [self urlError:@"Click info button to change Mirror URL."];
+    }
+    else{
+        [self urlError:@"Please check with your Mirror Administrator."];
+    }
     NSAlert *alert = [NSAlert alertWithMessageText: @"Problem receiving data"
                                      defaultButton: nil
                                    alternateButton: nil
@@ -107,59 +113,11 @@
                          informativeTextWithFormat: @"Please check internet connection and try again."];
     
     [alert compatibleBeginSheetModalForWindow: self.window completionHandler: ^(NSInteger returnCode){}];
-
+    
 }
 
 - (void)urlError:(NSString *)messageTxt{
     
-}
-
-- (void) continueLoadingInitialSettings{
-    if (JSONData == nil) {
-        if ([deviceView isHidden] == NO) {
-            [self urlError:@"Click info button to change Mirror URL."];
-        }
-        else{
-            [self urlError:@"Please check with your Mirror Administrator."];
-        }
-    }
-    else {
-        NSError *error = nil;
-        
-        campusesJsonArray = [NSJSONSerialization
-                             JSONObjectWithData:JSONData
-                             options:NSJSONReadingAllowFragments
-                             error:&error];
-        
-        NSLog(@"campusesJsonArray = %@", campusesJsonArray);
-        
-        if (!campusesJsonArray) {
-            NSLog(@"Error parsing JSON: %@", error);
-        }
-        else if ([campusesJsonArray count] < 1){
-            [NSAlert alertWithMessageText:@"Application error" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Please add campus."];
-            NSLog(@"No campuses were returned.");
-        } else {
-            if ([campusesJsonArray count] == 1) {
-                [chooseCampusButton removeAllItems];
-                [chooseCampusButton addItemWithTitle:[campusesJsonArray[0] objectForKey:@"name"]];
-            }
-            else
-            {
-                [chooseCampusButton removeAllItems];
-                [chooseCampusButton addItemWithTitle:@"Choose your campus"];
-                for(NSDictionary *json in campusesJsonArray) {
-                    NSLog(@"Item: %@", json);
-                    NSLog(@"name = %@", [json objectForKey:@"name"]);
-                    [chooseCampusButton addItemWithTitle:[json objectForKey:@"name"]];
-                }
-            }
-            
-            chooseCampusButton.enabled = YES;
-            isInitialSettingSet = YES;
-            NSLog(@"\nInitial setting loaded.\n");
-        }
-    }
 }
 
 - (void)loadInitialSettings{
@@ -173,19 +131,53 @@
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         [NSURLConnection sendAsynchronousRequest:urlRequest queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error)
          {
-             if ([data length] > 0 && error == nil){
-                 JSONData = data; //see note for respective code in iOS app ViewController
-             }
-             else if ([data length] == 0 && error == nil){
-                 [self receivingDataError];
-                 NSLog(@"data empty");
-             }
-             else{
+             if (error != nil){
                  [self receivingDataError];
                  NSLog(@"error = %@", error);
+             } else if ([data length] <= 0) {
+                 [self receivingDataError];
+                 NSLog(@"data empty");
+             } else {
+                 JSONData = data; //see note for respective code in iOS app ViewController
+                 NSLog(@"set JSONData");
+                 
+                 NSError *error = nil;
+                 
+                 campusesJsonArray = [NSJSONSerialization
+                                      JSONObjectWithData:JSONData
+                                      options:NSJSONReadingAllowFragments
+                                      error:&error];
+                 
+                 NSLog(@"campusesJsonArray = %@", campusesJsonArray);
+                 
+                 if (!campusesJsonArray) {
+                     NSLog(@"Error parsing JSON: %@", error);
+                 }
+                 else if ([campusesJsonArray count] < 1){
+                     [NSAlert alertWithMessageText:@"Application error" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Please add campus."];
+                     NSLog(@"No campuses were returned.");
+                 } else {
+                     if ([campusesJsonArray count] == 1) {
+                         [chooseCampusButton removeAllItems];
+                         [chooseCampusButton addItemWithTitle:[campusesJsonArray[0] objectForKey:@"name"]];
+                     }
+                     else
+                     {
+                         [chooseCampusButton removeAllItems];
+                         [chooseCampusButton addItemWithTitle:@"Choose your campus"];
+                         for(NSDictionary *json in campusesJsonArray) {
+                             NSLog(@"Item: %@", json);
+                             NSLog(@"name = %@", [json objectForKey:@"name"]);
+                             [chooseCampusButton addItemWithTitle:[json objectForKey:@"name"]];
+                         }
+                     }
+                     
+                     chooseCampusButton.enabled = YES;
+                     isInitialSettingSet = YES;
+                     NSLog(@"\nInitial setting loaded.\n");
+                 }
              }
          }];
-        [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(continueLoadingInitialSettings) userInfo:nil repeats:NO];
     }
 }
 
@@ -226,9 +218,9 @@
                     NSError *error = nil;
                     
                     buildingsJsonArray = [NSJSONSerialization
-                                         JSONObjectWithData:JSONData
-                                         options:NSJSONReadingAllowFragments
-                                         error:&error];
+                                          JSONObjectWithData:JSONData
+                                          options:NSJSONReadingAllowFragments
+                                          error:&error];
                     
                     NSLog(@"buildingsJsonArray = %@", buildingsJsonArray);
                     
@@ -282,9 +274,9 @@
                     NSError *error = nil;
                     
                     roomsJsonArray = [NSJSONSerialization
-                                         JSONObjectWithData:JSONData
-                                         options:NSJSONReadingAllowFragments
-                                         error:&error];
+                                      JSONObjectWithData:JSONData
+                                      options:NSJSONReadingAllowFragments
+                                      error:&error];
                     
                     NSLog(@"roomsJsonArray = %@", roomsJsonArray);
                     
@@ -330,9 +322,9 @@
                 NSError *error = nil;
                 
                 devicesJsonArray = [NSJSONSerialization
-                                      JSONObjectWithData:JSONData
-                                      options:NSJSONReadingAllowFragments
-                                      error:&error];
+                                    JSONObjectWithData:JSONData
+                                    options:NSJSONReadingAllowFragments
+                                    error:&error];
                 
                 NSLog(@"devicesJsonArray = %@", devicesJsonArray);
                 

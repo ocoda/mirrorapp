@@ -207,44 +207,7 @@ static NSString *seeLabels;
      
     }
     else{
-        NSError *error = nil;
-        
-        campusesJsonArray = [NSJSONSerialization
-                             JSONObjectWithData:JSONData
-                             options:NSJSONReadingAllowFragments
-                             error:&error];
-        
-        NSLog(@"campusesJsonArray = %@", campusesJsonArray);
-        
-        if (!campusesJsonArray) {
-            NSLog(@"Error parsing JSON: %@", error);
-        }
-        else if ([campusesJsonArray count] < 1){
-            UIAlertView *message = [[UIAlertView alloc] initWithTitle:@"Application error"
-                                                              message:@"Please add campus"
-                                                             delegate:nil
-                                                    cancelButtonTitle:@"OK"
-                                                    otherButtonTitles:nil];
-            [message show];
-            NSLog(@"No campuses were returned.");
-        }
-        else {
-            if ([campusesJsonArray count] == 1) {
-                [self campusAnimation:campusesJsonArray[0]];
-            }
-            else
-            {
-                for(NSDictionary *json in campusesJsonArray) {
-                    NSLog(@"Item: %@", json);
-                    NSLog(@"name = %@", [json objectForKey:@"name"]);
-                    [campusValues addObject:[json objectForKey:@"name"]];
-                }
-                [campusValues insertObject:@"Choose Campus" atIndex:0]; //It appears I have to have more then one choice for the picker to fire on click
-                ChooseCampusButton.enabled = YES;
-            }
-            isInitialSettingSet = YES;
-            NSLog(@"\nInitial setting loaded.\n");
-        }
+
     }
 }
 
@@ -260,17 +223,53 @@ static NSString *seeLabels;
         
         [NSURLConnection sendAsynchronousRequest:urlRequest queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error)
          {
-             if ([data length] > 0 && error == nil){
-                 JSONData = data; //put rest of loadInitialSettings logic in continueLoadingInitialSettings because, execution of ChooseCampusButton.enabled = YES; was taking about 20 seconds even though JSONData = data; happenned immediately (relatively speaking).
-             }
-             else if ([data length] == 0 && error == nil){
-                 NSLog(@"data empty");
-             }
-             else {
+             if (error != nil) {
                  NSLog(@"error = %@", error);
+             } else if ([data length] == 0){
+                 NSLog(@"data empty");
+             } else {
+                 NSLog(@"data seems fine, continueing");
+                 JSONData = data;
+                 NSError *error = nil;
+                 
+                 campusesJsonArray = [NSJSONSerialization
+                                      JSONObjectWithData:JSONData
+                                      options:NSJSONReadingAllowFragments
+                                      error:&error];
+                 
+                 NSLog(@"campusesJsonArray = %@", campusesJsonArray);
+                 
+                 if (!campusesJsonArray) {
+                     NSLog(@"Error parsing JSON: %@", error);
+                 }
+                 else if ([campusesJsonArray count] < 1){
+                     UIAlertView *message = [[UIAlertView alloc] initWithTitle:@"Application error"
+                                                                       message:@"Please add campus"
+                                                                      delegate:nil
+                                                             cancelButtonTitle:@"OK"
+                                                             otherButtonTitles:nil];
+                     [message show];
+                     NSLog(@"No campuses were returned.");
+                 }
+                 else {
+                     if ([campusesJsonArray count] == 1) {
+                         [self campusAnimation:campusesJsonArray[0]];
+                     }
+                     else
+                     {
+                         for(NSDictionary *json in campusesJsonArray) {
+                             NSLog(@"Item: %@", json);
+                             NSLog(@"name = %@", [json objectForKey:@"name"]);
+                             [campusValues addObject:[json objectForKey:@"name"]];
+                         }
+                         [campusValues insertObject:@"Choose Campus" atIndex:0]; //It appears I have to have more then one choice for the picker to fire on click
+                         ChooseCampusButton.enabled = YES;
+                     }
+                     isInitialSettingSet = YES;
+                     NSLog(@"\nInitial setting loaded.\n");
+                 }
              }
          }];
-        [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(continueLoadingInitialSettings) userInfo:nil repeats:NO];
     }
 }
 

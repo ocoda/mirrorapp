@@ -104,7 +104,6 @@
 - (void)urlError:(NSString *)messageTxt;
 - (void)chooserErrorType:(NSString*)chooser name:(NSString*)name;
 
-- (void)continueLoadingInitialSettings;
 - (void)loadInitialSettings;
 - (void)resetUI;
 - (void)campusAnimation:(NSDictionary *)chosenCampus;

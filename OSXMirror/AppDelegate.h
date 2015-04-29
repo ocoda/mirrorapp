@@ -62,7 +62,6 @@
 - (void)receivingDataError;
 - (void)urlError:(NSString *)messageTxt;
 
-- (void)continueLoadingInitialSettings;
 - (void)loadInitialSettings;
 - (void)resetUI;
 
